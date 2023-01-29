@@ -1,0 +1,96 @@
+Criar o ambiente virtual:
+python -m venv venv
+
+Ativar o ambiente virtual:
+  Windows: .\venv\Scripts\activate.bat
+
+instalar os requisitos para o projeto, no caso da loja:
+  Django:   pip install django
+
+  Crispy-forms: pip install django-crispy-forms
+
+  Pillow: pip install Pillow
+
+  Pylint: pip install pyling-django
+
+  Debug-Toolbar: pip install django-debug-toolbar
+  Em settings.py adicionar:
+  INSTALLED_APPS = [
+    'debug_toolbar',
+  ] como último
+
+  MIDDLEWARE = [
+    
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+  ]
+
+  'DIRS': [
+    os.path.join(BASE_DIR, 'templates')
+  ],  
+
+  INTERNAL_IPS = [
+    '127.0.0.1',
+  ]
+
+  Em urls.py adicionar: 
+  from django.urls import path, include
+  from django.conf import settings
+  from django.conf.urls.static import static
+
+  urlpatterns = [
+    path('admin/', admin.site.urls),
+  ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    if settings.DEBUG:
+      import debug_toolbar
+      urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+      ] + urlpatterns
+  
+Start no projeto:
+django-admin startproject loja .
+
+Definir os módulos básicos:
+python manage.py startapp produto
+python manage.py startapp pedido
+python manage.py startapp perfil
+
+Realizar as migrates:
+python manage.py migrate
+
+Criar o superuser:
+python manage.py createsuperuser
+usuário: lucas
+email: email@email.com
+senha: 123456
+
+iniciar o projeto:
+python manage.py runserver
+
+Adicionar ao settings.py:
+STATIC_ROOT = os.path.join(BASE_DIR, 'templates/static')
+STATICFILES_DIR = [
+    os.path.join('static')
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+from django.contrib.messages import constants
+
+MESSAGE_TAGS = {
+    constants.DEBUG : 'alert-info',
+    constants.ERROR : 'alert-danger',
+    constants.INFO : 'alert-info',
+    constants.SUCCESS : 'alert-sucess',
+    constants.WARNING : 'alert-warning',
+}
+
+# Sessão em dias: 60s*60m*24hrs*1dia
+SESSION_COOKIE_AGE = 60*60*24*7
+
+# Salvar cada requisição
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Serializer - Padrão JSON
+# SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickSerializer'
