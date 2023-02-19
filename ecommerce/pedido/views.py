@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views import View
 from django.http import HttpResponse
 from django.contrib import messages
 from produto.models import Variacao
 from utils import utils
 from .models import Pedido, ItemPedido
+from django.shortcuts import reverse
 
 
-class Pagar(View):
+class SalvarPedido(View):
     template_name = 'pedidio/pagar.html'
 
     def get(self, *args, **kwargs):
@@ -82,19 +83,44 @@ class Pagar(View):
 
         del self.request.session['carrinho']
         # render(self.request, self.template_name, contexto)
-        return redirect('pedido:lista')
+        return redirect(reverse(
+            'pedido:pagar',
+            kwargs={
+                'pk': pedido.pk
+            }
+        ))
 
 
-class SalvarPedido(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('SalvarPedido')
+class DispatchLoginRequiredMixing(View):
+    def dispatch(self, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            return redirect('perfil:criar')
+
+        return super().dispatch(*args, **kwargs)
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        qs = qs.filter(usuario=self.request.user)
+        return qs
 
 
-class Detalhe(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Detalhe')
+class Pagar(DispatchLoginRequiredMixing, DetailView):
+    template_name = 'pedido/pagar.html'
+    model = Pedido
+    pk_url_kwarg = 'pk'
+    context_object_name = 'pedido'
 
 
-class Lista(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Lista')
+class Detalhe(DispatchLoginRequiredMixing, DetailView):
+    model = Pedido
+    context_object_name = 'pedido'
+    template_name = 'pedido/detalhe.html'
+    pk_url_kwarg = 'pk'
+
+
+class Lista(DispatchLoginRequiredMixing, ListView):
+    model = Pedido
+    context_object_name = 'pedidos'
+    template_name = 'pedido/lista.html'
+    paginate_by = 10
+    ordering = ['-id']
